@@ -1,0 +1,145 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_API_VERSION = "2"
+
+VM_BOX_UBUNTU = "generic/ubuntu2204" # Ubuntu 22.04 LTS
+VM_BOX_KALI = "kalilinux/rolling" # Kali Linux
+
+# IP address allocation
+ELK_SERVER_IP = "192.168.56.10"
+UBUNTU_CLIENT_IP = "192.168.56.20"
+KALI_ATTACKER_IP = "192.168.56.50"
+
+Vagrant.configure(VAGRANT_API_VERSION) do |config|
+
+	# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	# Global Configuration (applies to all VMs)
+	# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	# Don't check for box updates every time (speeds up vagrant up)
+	config.vm.box_check_update = false
+
+	# Share this directory with VMs at /vagrant
+	# Useful for transferring files between host and VMs
+	config.vm.synced_folder ".", "/vagrant", disabled: false
+
+	# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	# ELK Server - The Brain 🧠
+	# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+	config.vm.define "elk-server" do |elk|
+		elk.vm.box = VM_BOX_UBUNTU
+		elk.vm.hostname = "elk-server"
+
+		# Networking
+		# NAT is automatic (gives internet access)
+		# Private network allows VM-to-VM communication
+		elk.vm.network "private_network", ip: ELK_SERVER_IP
+
+		# Port forwarding - access services from your host machine
+		# Format: guest port -> host port
+		elk.vm.network "forwarded_port", guest: 5601, host: 5601, host_ip: "127.0.0.1" # Kibana
+		elk.vm.network "forwarded_port", guest: 9200, host: 9200, host_ip: "127.0.0.1" # Elasticsearch
+
+	# VirtualBox-specific settings
+	elk.vm.provider "virtualbox" do |vb|
+		vb.name = "elk-siem-server"
+
+		# Memory: 6GB minimum for Elasticsearch
+		# In production, SIEM servers have 64GB+
+		vb.memory = 6144
+
+		# CPUs: 2 cores minimum
+		# Elasticsearch benefits from more cores
+		vb.cpus = 2
+
+		# DNS resolution fixes
+		# These prevent common networking issues in VirtualBox
+		vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+		vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+	end
+	
+	# Provisioning - commands to run on first boot
+	# We install Python because Ansible needs it
+	elk.vm.provision "shell", inline: <<-SHELL
+		# Update package lists
+		apt-get update
+
+		# Install Python for Ansible
+		apt-get install -y python3 python3-pip
+
+		# Add /etc/hosts entries
+		# This lets VMs find each other by hostname
+		cat >> /etc/hosts << 'HOSTS'
+192.168.56.10 elk-server
+192.168.56.20 ubuntu-client
+192.168.56.50 kali-attacker
+HOSTS
+	 SHELL
+	end
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Ubuntu Client - The Victim 🎯
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+	config.vm.define "ubuntu-client" do |client|
+		client.vm.box = VM_BOX_UBUNTU
+		client.vm.hostname = "ubuntu-client"
+
+		# Private network for sending logs to ELK server
+		client.vm.network "private_network", ip: UBUNTU_CLIENT_IP
+
+	# Lighter resources - this VM just generates logs
+	client.vm.provider "virtualbox" do |vb|
+		vb.name = "elk-siem-client"
+		vb.memory = 2048
+		vb.cpus = 1
+	end
+
+client.vm.provision "shell", inline: <<-SHELL
+apt-get update
+apt-get install -y python3 python3-pip
+
+# Add hosts entries
+cat >> /etc/hosts << 'HOSTS'
+192.168.56.10 elk-server
+192.168.56.20 ubuntu-client
+192.168.56.50 kali-attacker
+HOSTS
+	 SHELL
+	end
+
+	# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+	# Kali Attacker - The Chaos 💀
+	# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+	config.vm.define "kali-attacker" do |kali|
+		kali.vm.box = VM_BOX_KALI
+		kali.vm.hostname = "kali-attacker"
+
+		kali.vm.network "private_network", ip: KALI_ATTACKER_IP
+
+		kali.vm.provider "virtualbox" do |vb|
+			vb.name = "elk-siem-attacker"
+			vb.memory = 2048
+			vb.cpus = 2
+			vb.gui = false
+		end
+
+		kali.vm.provision "shell", inline: <<-SHELL
+			apt-get update
+			apt-get install -y python3 python3-pip
+
+			# Install attack tools
+			# Most are pre-installed in Kali, but ensure they're present
+			apt-get install -y hydra nmap sqlmap nikto
+
+			# Add hosts entries
+			cat >> /etc/hosts << 'HOSTS'
+192.168.56.10 elk-server
+192.168.56.20 ubuntu-client
+192.168.56.50 kali-attacker
+HOSTS
+	 SHELL
+	end
+end

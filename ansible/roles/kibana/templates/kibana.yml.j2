@@ -1,0 +1,32 @@
+# ======================== Kibana Configuration =========================
+
+server.host: "{{ kibana_server_host }}"
+server.port: {{ kibana_server_port }}
+
+elasticsearch.hosts: ["{{ kibana_elasticsearch_hosts }}"]
+elasticsearch.username: "{{ elasticsearch_username }}"
+elasticsearch.password: "{{ elasticsearch_password }}"
+
+# Required for Kibana 8.x
+elasticsearch.ssl.verificationMode: none
+
+# Security
+xpack.encryptedSavedObjects.encryptionKey: "min-32-character-long-strong-encryption-key"
+xpack.reporting.encryptionKey: "min-32-character-long-strong-encryption-key"
+xpack.security.encryptionKey: "min-32-character-long-strong-encryption-key"
+
+# Disable telemetry
+telemetry.enabled: false
+telemetry.optIn: false
+
+# Logging
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: pattern
+  root:
+    level: info
+    appenders: [default, file]

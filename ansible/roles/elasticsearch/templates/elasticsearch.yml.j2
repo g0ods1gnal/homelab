@@ -1,0 +1,26 @@
+# ======================== Elasticsearch Configuration =========================
+
+cluster.name: {{ elasticsearch_cluster_name }}
+node.name: {{ elasticsearch_node_name }}
+
+# Network
+network.host: {{ elasticsearch_network_host }}
+http.port: {{ elasticsearch_http_port }}
+
+# Discovery (single-node cluster for lab)
+discovery.type: single-node
+
+# Security - Enabled but simplified for lab environment
+xpack.security.enabled: true
+xpack.security.enrollment.enabled: false
+
+# Disable SSL/TLS for lab (not recommended for production)
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Disable ML features (not needed for lab, saves resources)
+xpack.ml.enabled: false
+
+# Path configuration
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch

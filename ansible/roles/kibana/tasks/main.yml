@@ -1,0 +1,50 @@
+---
+- name: Install Kibana
+  apt:
+    name: kibana={{ kibana_version }}
+    state: present
+
+- name: Ensure Kibana log directory exists
+  file:
+    path: /var/log/kibana
+    state: directory
+    owner: kibana
+    group: kibana
+    mode: '0755'
+
+- name: Configure Kibana
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: root
+    group: kibana
+    mode: '0660'
+  notify: restart kibana
+
+- name: Start and enable Kibana
+  systemd:
+    name: kibana
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  register: kibana_start
+
+- name: Wait for Kibana to start
+  wait_for:
+    host: localhost
+    port: 5601
+    delay: 15
+    timeout: 300
+    state: started
+  when: not (kibana_start.failed | default(false))
+
+- name: Check Kibana logs if failed
+  command: tail -50 /var/log/kibana/kibana.log
+  register: kibana_logs
+  when: kibana_start.failed | default(false)
+  changed_when: false
+
+- name: Display Kibana errors if startup failed
+  debug:
+    msg: "{{ kibana_logs.stdout_lines }}"
+  when: kibana_start.failed | default(false)

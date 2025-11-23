@@ -19,7 +19,7 @@ config: ## Generate SSH and Ansible configuration
 	@cd scripts/bash && ./generate_inventory.sh
 	@echo "✅ Configuration generated successfully"
 
-deploy: config ## Deploy the entire lab (takes ~30-40 minutes)
+deploy: ## Deploy the entire lab (takes ~30-40 minutes)
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "🚀 Deploying SOC Lab"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -32,10 +32,15 @@ deploy: config ## Deploy the entire lab (takes ~30-40 minutes)
 	@echo ""
 	@echo "☕ Grab coffee - this takes ~30-40 minutes"
 	@echo ""
+	@echo "📦 Creating VMs with Vagrant..."
 	@cd vagrant && vagrant up
 	@echo ""
 	@echo "⏳ Waiting for VMs to fully boot (30 seconds)..."
 	@sleep 30
+	@echo ""
+	@echo "🔧 Generating SSH and Ansible configuration..."
+	@cd vagrant && vagrant ssh-config > ../ansible/ssh_config
+	@cd scripts/bash && ./generate_inventory.sh
 	@echo ""
 	@echo "🧪 Testing connectivity..."
 	@cd ansible && ansible all -m ping
