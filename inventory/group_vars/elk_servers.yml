@@ -1,0 +1,22 @@
+---
+# ELK Server specific variables
+
+# Elasticsearch JVM heap (50% of RAM)
+elasticsearch_heap_size: "3g"
+
+# Elasticsearch configuration
+elasticsearch_network_host:
+  - "192.168.56.10"
+  - "127.0.0.1"
+
+elasticsearch_discovery_type: "single-node"
+
+# Disable SSL for lab (NEVER in production!)
+elasticsearch_xpack_security_http_ssl_enabled: false
+elasticsearch_xpack_security_transport_ssl_enabled: false
+
+# Kibana configuration
+kibana_server_host: "192.168.56.10"
+kibana_server_name: "elk-server"
+kibana_elasticsearch_hosts:
+  - "http://192.168.56.10:9200"

@@ -1,0 +1,6 @@
+input {
+  beats {
+    port => {{ logstash_beats_port }}
+    host => "{{ elk_server_ip }}"
+  }
+}

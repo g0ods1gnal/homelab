@@ -1,0 +1,52 @@
+---
+# Common role: Base system configuration
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install essential packages
+  apt:
+    name:
+      - curl
+      - wget
+      - vim
+      - git
+      - htop
+      - net-tools
+      - ca-certificates
+      - apt-transport-https
+      - gnupg
+    state: present
+
+- name: Configure DNS
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    mode: '0644'
+
+- name: Disable systemd-resolved (prevents DNS issues)
+  systemd:
+    name: systemd-resolved
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Update /etc/hosts
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    mode: '0644'
+
+- name: Disable cloud-init networking
+  copy:
+    content: |
+      network: {config: disabled}
+    dest: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+    mode: '0644'
+  ignore_errors: yes

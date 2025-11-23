@@ -1,0 +1,45 @@
+---
+- name: Install Logstash
+  apt:
+    name: logstash={{ elk_version }}
+    state: present
+    update_cache: yes
+
+- name: Create Logstash pipeline directory
+  file:
+    path: /etc/logstash/conf.d
+    state: directory
+    owner: logstash
+    group: logstash
+    mode: '0755'
+
+- name: Create Logstash input configuration
+  template:
+    src: 01-beats-input.conf.j2
+    dest: /etc/logstash/conf.d/01-beats-input.conf
+    owner: logstash
+    group: logstash
+    mode: '0644'
+  notify: restart logstash
+
+- name: Create Logstash output configuration
+  template:
+    src: 99-elasticsearch-output.conf.j2
+    dest: /etc/logstash/conf.d/99-elasticsearch-output.conf
+    owner: logstash
+    group: logstash
+    mode: '0644'
+  notify: restart logstash
+
+- name: Enable and start Logstash
+  systemd:
+    name: logstash
+    state: started
+    enabled: yes
+
+- name: Wait for Logstash to start
+  wait_for:
+    host: "{{ elk_server_ip }}"
+    port: "{{ logstash_beats_port }}"
+    delay: 30
+    timeout: 300

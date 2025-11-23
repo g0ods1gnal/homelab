@@ -1,0 +1,22 @@
+# Managed by Ansible - DO NOT EDIT
+
+filebeat.inputs:
+  - type: filestream
+    id: system-logs
+    enabled: true
+    paths:
+{% for path in filebeat_system_log_paths %}
+      - {{ path }}
+{% endfor %}
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+output.logstash:
+  hosts: {{ filebeat_output_logstash_hosts | to_json }}
+
+setup.kibana:
+  host: "{{ filebeat_setup_kibana_host }}"
+
+logging.level: info

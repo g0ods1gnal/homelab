@@ -1,0 +1,7 @@
+---
+elasticsearch_version: "{{ elk_version }}"
+elasticsearch_user: elasticsearch
+elasticsearch_group: elasticsearch
+elasticsearch_home: /usr/share/elasticsearch
+elasticsearch_data_dir: /var/lib/elasticsearch
+elasticsearch_log_dir: /var/log/elasticsearch

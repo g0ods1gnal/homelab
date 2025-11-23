@@ -1,0 +1,80 @@
+---
+- name: Create Kibana user
+  user:
+    name: kibana
+    system: yes
+    shell: /bin/false
+    home: /opt/kibana
+    createhome: no
+
+- name: Download Kibana tarball
+  get_url:
+    url: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ elk_version }}-linux-x86_64.tar.gz"
+    dest: /tmp/kibana.tar.gz
+    mode: '0644'
+
+- name: Extract Kibana
+  unarchive:
+    src: /tmp/kibana.tar.gz
+    dest: /opt/
+    remote_src: yes
+    creates: /opt/kibana-{{ elk_version }}
+
+- name: Create Kibana symlink
+  file:
+    src: /opt/kibana-{{ elk_version }}
+    dest: /opt/kibana
+    state: link
+
+- name: Set Kibana ownership
+  file:
+    path: /opt/kibana
+    owner: kibana
+    group: kibana
+    recurse: yes
+
+- name: Create Kibana config directory
+  file:
+    path: /etc/kibana
+    state: directory
+    owner: kibana
+    group: kibana
+    mode: '0755'
+
+- name: Create Kibana log directory
+  file:
+    path: /var/log/kibana
+    state: directory
+    owner: kibana
+    group: kibana
+    mode: '0755'
+
+- name: Create Kibana configuration
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: kibana
+    group: kibana
+    mode: '0660'
+  notify: restart kibana
+
+- name: Create Kibana systemd service
+  template:
+    src: kibana.service.j2
+    dest: /etc/systemd/system/kibana.service
+    mode: '0644'
+  notify: restart kibana
+
+- name: Enable and start Kibana
+  systemd:
+    name: kibana
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Wait for Kibana to start
+  wait_for:
+    host: "{{ kibana_server_host }}"
+    port: "{{ kibana_port }}"
+    delay: 10
+    timeout: 300

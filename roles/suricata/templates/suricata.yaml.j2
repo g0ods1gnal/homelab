@@ -1,0 +1,29 @@
+# Managed by Ansible - DO NOT EDIT
+
+vars:
+  address-groups:
+    HOME_NET: "[{{ suricata_home_net }}]"
+    EXTERNAL_NET: "!$HOME_NET"
+
+af-packet:
+  - interface: {{ suricata_interface }}
+    threads: 1
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert:
+            payload: yes
+            packet: yes
+        - http:
+            extended: yes
+        - dns
+        - tls
+        - files
+        - ssh

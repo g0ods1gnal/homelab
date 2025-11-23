@@ -1,0 +1,20 @@
+# Managed by Ansible - DO NOT EDIT
+
+server.port: {{ kibana_port }}
+server.host: "{{ kibana_server_host }}"
+server.name: "{{ kibana_server_name }}"
+
+elasticsearch.hosts: {{ kibana_elasticsearch_hosts | to_json }}
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "{{ kibana_system_password }}"
+
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: pattern
+  root:
+    appenders: [file]
+    level: info
