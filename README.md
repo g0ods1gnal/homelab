@@ -1,16 +1,33 @@
 # homelab
 
-## TL;DR
-```bash
-make deploy  # Builds everything
-make attack  # Runs attack scenarios
-make destroy # Burns it all down
-```
+Infrastructure-as-Code SIEM lab for learning SOC engineering and DevOps practices.
+
+## Quick Start 
+`bash git clone`
+`cd homelab`
+`make deploy` # Grab coffee ☕
 
 ## Philosophy
-Infrastructure as Code. Configuration as Code. Detection as Code. Everything in Git.
+Everything is code. Everything is in Git. Everything is reproducible.
 
-If you can't `git clone` it and run it, it doesn't exist.
+If you can't `git clone` and `make deploy`, it doesn't exist.
 
-## Quick Start
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md)
+## What You Get
+- Full ELK Stack (Elasticsearch, Logstash, Kibana)
+- Multi-VM environment (Ubuntu client, Kali attacker)
+- Detection rules as code (YAML)
+- Attack scenarios as code (YAML)
+- Python automation (alert enrichment, reporting)
+- CI/CD ready (lint, test, deploy)
+  
+## Commands
+See `make help` for all available commands.
+
+Most common:
+- `make deploy` - Deploy everything
+- `make status` - Check VM status
+- `make destroy` - Burn it all down
+- `make ssh-elk` - SSH into ELK server
+
+## Documentation
+See [docs/](docs/) for detailed guides.
