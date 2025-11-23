@@ -3,7 +3,7 @@
 
 # Configuration
 VAGRANT_API_VERSION = "2"
-VM_BOX_UBUNTU = "ubuntu/jammy64"  # Ubuntu 22.04
+VM_BOX_UBUNTU = "generic/ubuntu2204"
 VM_BOX_KALI = "kalilinux/rolling"
 
 # Network config
