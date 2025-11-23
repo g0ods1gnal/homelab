@@ -1,0 +1,34 @@
+# Vagrant
+.vagrant/
+*.log
+
+# Ansible
+*.retry
+ansible/inventory/host_vars/*_secrets.yml
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Secrets
+**/passwords.txt
+**/credentials.yml
+**/secrets.yml
+**/.vault_pass
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
