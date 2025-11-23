@@ -1,33 +1,22 @@
-# homelab
+# SOC Lab
 
-Infrastructure-as-Code SIEM lab for learning SOC engineering and DevOps practices.
+**Infrastructure-as-Code Security Operations Center for Learning**
 
-## Quick Start 
-`bash git clone`
+## TL;DR
+`git clone`
 `cd homelab`
-`make deploy` # Grab coffee ☕
+`make deploy` # ☕ 30-40 minutes
 
 ## Philosophy
-Everything is code. Everything is in Git. Everything is reproducible.
-
-If you can't `git clone` and `make deploy`, it doesn't exist.
-
-## What You Get
-- Full ELK Stack (Elasticsearch, Logstash, Kibana)
-- Multi-VM environment (Ubuntu client, Kali attacker)
-- Detection rules as code (YAML)
-- Attack scenarios as code (YAML)
-- Python automation (alert enrichment, reporting)
-- CI/CD ready (lint, test, deploy)
-  
-## Commands
-See `make help` for all available commands.
-
-Most common:
-- `make deploy` - Deploy everything
-- `make status` - Check VM status
-- `make destroy` - Burn it all down
-- `make ssh-elk` - SSH into ELK server
+**Everything is code.** If you can't `git clone` it and rebuild it in one command, it doesn't exist.
 
 ## Documentation
-See [docs/](docs/) for detailed guides.
+- [Architecture](docs/ARCHITECTURE.md) : System design and network topology
+- [Deployment](docs/DEPLOYMENT.md) : Detailed deployment guide
+- [Detection Rules](docs/DETECTION_RULES.md) : Writing and managing rules
+
+## Prerequisites
+- 16GB+ RAM
+- 200GB+ disk space
+- VirtualBox, Vagrant, Ansible and Git (duh)
+- Python 3.8+
