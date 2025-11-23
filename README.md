@@ -65,7 +65,7 @@ System Events → Syslog (Ubuntu) ───────────────�
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -115,7 +115,7 @@ make deploy
 
 ---
 
-## 📖 Usage
+## Usage
 
 ### Access the Lab
 
@@ -169,7 +169,7 @@ vagrant ssh elk-server -c "free -h && df -h"
 
 ---
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 ### Verify Deployment
 ```bash
@@ -201,7 +201,7 @@ exit
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 ### 1. SOC Analyst Training
 - Practice log analysis
@@ -223,7 +223,7 @@ exit
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### VMs Won't Start
 ```bash
@@ -288,7 +288,7 @@ make rebuild
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed system design
 - **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Step-by-step deployment guide
@@ -296,7 +296,7 @@ make rebuild
 
 ---
 
-## 🔐 Security Considerations
+## Security Considerations
 
 **⚠️ This is a LAB environment. NOT for production use.**
 
@@ -317,7 +317,7 @@ Security simplifications made for learning:
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 **Phase 1: Core Infrastructure** ✅
 - [x] VM provisioning with Vagrant
