@@ -2,6 +2,7 @@
 - name: Configure all VMs with common settings
   hosts: all
   become: yes
+  tags: common
   roles:
     - common
 
@@ -9,8 +10,10 @@
   hosts: elk_servers
   become: yes
   roles:
-    - elasticsearch
-    - kibana
+    - role: elasticsearch
+      tags: elasticsearch
+    - role: kibana
+      tags: kibana
 
 - name: Deploy log sources on ubuntu-client
   hosts: clients

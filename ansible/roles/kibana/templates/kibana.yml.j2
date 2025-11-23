@@ -7,7 +7,7 @@ elasticsearch.hosts: ["{{ kibana_elasticsearch_hosts }}"]
 elasticsearch.username: "{{ elasticsearch_username }}"
 elasticsearch.password: "{{ elasticsearch_password }}"
 
-# Required for Kibana 8.x
+# SSL/TLS (disabled for lab)
 elasticsearch.ssl.verificationMode: none
 
 # Security

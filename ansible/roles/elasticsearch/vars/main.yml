@@ -5,5 +5,5 @@ elasticsearch_node_name: "elk-server-node"
 elasticsearch_network_host: "0.0.0.0"
 elasticsearch_http_port: 9200
 
-# Security credentials
-elasticsearch_password: "ElkL@b2025"
+# Note: elasticsearch_password comes from group_vars/all/vars.yml
+# which references vault_elasticsearch_superuser_password from vault.yml

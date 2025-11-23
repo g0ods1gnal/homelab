@@ -12,6 +12,55 @@
     group: kibana
     mode: '0755'
 
+- name: Check if Elasticsearch password marker exists
+  stat:
+    path: /etc/elasticsearch/.password_configured
+  register: es_password_marker
+
+- name: Fail if Elasticsearch password not configured
+  fail:
+    msg: "Elasticsearch password has not been configured yet. This should have been done by the elasticsearch role."
+  when: not es_password_marker.stat.exists
+
+- name: Wait for Elasticsearch to be ready (with authentication)
+  uri:
+    url: "http://localhost:9200"
+    method: GET
+    user: elastic
+    password: "{{ elastic_superuser_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  register: es_ready
+  until: es_ready.status == 200
+  retries: 30
+  delay: 10
+
+- name: Check if kibana_system password already set
+  uri:
+    url: "http://localhost:9200/_security/user/kibana_system"
+    method: GET
+    user: elastic
+    password: "{{ elastic_superuser_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  register: kibana_user_check
+  ignore_errors: yes
+
+- name: Set kibana_system user password
+  uri:
+    url: "http://localhost:9200/_security/user/kibana_system/_password"
+    method: POST
+    body_format: json
+    body:
+      password: "{{ elasticsearch_password }}"
+    headers:
+      Content-Type: "application/json"
+    user: elastic
+    password: "{{ elastic_superuser_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  register: kibana_password_result
+
 - name: Configure Kibana
   template:
     src: kibana.yml.j2
@@ -37,14 +86,3 @@
     timeout: 300
     state: started
   when: not (kibana_start.failed | default(false))
-
-- name: Check Kibana logs if failed
-  command: tail -50 /var/log/kibana/kibana.log
-  register: kibana_logs
-  when: kibana_start.failed | default(false)
-  changed_when: false
-
-- name: Display Kibana errors if startup failed
-  debug:
-    msg: "{{ kibana_logs.stdout_lines }}"
-  when: kibana_start.failed | default(false)

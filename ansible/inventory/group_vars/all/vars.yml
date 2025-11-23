@@ -1,0 +1,27 @@
+---
+# =============================================================================
+# Centralized Variable Definitions
+# =============================================================================
+# All sensitive values are stored in vault.yml (encrypted with Ansible Vault)
+# This file contains references to those encrypted values and can be safely
+# committed to version control.
+#
+# To view encrypted values: make vault-view
+# To edit encrypted values: make vault-edit
+# =============================================================================
+
+# Elasticsearch Passwords
+elasticsearch_superuser_password: "{{ vault_elasticsearch_superuser_password }}"
+elasticsearch_kibana_password: "{{ vault_elasticsearch_kibana_password }}"
+
+# Kibana Configuration
+# These are used by the Kibana role templates
+elastic_superuser_password: "{{ vault_elasticsearch_superuser_password }}"
+elasticsearch_password: "{{ vault_elasticsearch_kibana_password }}"
+kibana_encryption_key: "{{ vault_kibana_encryption_key }}"
+kibana_reporting_key: "{{ vault_kibana_reporting_key }}"
+kibana_security_key: "{{ vault_kibana_security_key }}"
+
+# Future: Add Filebeat, Logstash, etc. credentials here
+# filebeat_elasticsearch_password: "{{ vault_filebeat_elasticsearch_password }}"
+# logstash_elasticsearch_password: "{{ vault_logstash_elasticsearch_password }}"

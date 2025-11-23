@@ -3,5 +3,12 @@ kibana_version: "8.11.0"
 kibana_server_host: "0.0.0.0"
 kibana_server_port: 5601
 kibana_elasticsearch_hosts: "http://localhost:9200"
-elasticsearch_username: "elastic"
-elasticsearch_password: "ElkL@b2025"
+elasticsearch_username: "kibana_system"
+
+# Note: All passwords and encryption keys come from group_vars/all/vars.yml
+# which references vault variables from vault.yml:
+# - elasticsearch_password (for kibana_system user)
+# - elastic_superuser_password (for elastic user)
+# - kibana_encryption_key
+# - kibana_reporting_key  
+# - kibana_security_key
