@@ -1,16 +1,17 @@
-# Vagrant
+# Vagrant state
 .vagrant/
 *.log
 
-# Ansible 
+# Ansible
 *.retry
-ansible/inventory/host_vars/*_secrets.yml
 ansible/ssh_config
+ansible/inventory/host_vars/*_secrets.yml
 
 # Python
 __pycache__/
 *.pyc
 venv/
+.venv/
 .env
 
 # Secrets
@@ -18,14 +19,13 @@ venv/
 **/credentials.yml
 **/secrets.yml
 **/.vault_pass
-
-# SSH keys
-**/*.pem
+*.pem
 **/private_key
 
-# OS
-cruft
-.DS_Store Thumbs.db
+# OS cruft
+.DS_Store
+Thumbs.db
+*~
 
 # IDE
 .vscode/
