@@ -1,127 +1,122 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+.PHONY: help deploy destroy status ssh-elk ssh-client ssh-kali config test-connectivity deploy-rules attack lint clean
 
-VAGRANT_API_VERSION = "2"
+.DEFAULT_GOAL := help
 
-VM_BOX_UBUNTU = "generic/ubuntu2204"  # Ubuntu 22.04 LTS
-VM_BOX_KALI = "kalilinux/rolling"     # Kali Linux (pentesting distro)
+help: ## Show this help message
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo " SOC Lab"
+	@echo " Everything as Code. Everything in Git. Everything Reproducible."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "Available commands:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf " \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
 
-# Network configuration
-# We use a private network so VMs can talk to each other
-ELK_SERVER_IP = "192.168.56.10"
-UBUNTU_CLIENT_IP = "192.168.56.20"
-KALI_ATTACKER_IP = "192.168.56.50"
+config: ## Generate SSH and Ansible configuration
+	@echo "🔧 Generating SSH configuration from Vagrant..."
+	@cd vagrant && vagrant ssh-config > ../ansible/ssh_config
+	@echo "📝 Generating Ansible inventory..."
+	@cd scripts/bash && ./generate_inventory.sh
+	@echo "✅ Configuration generated successfully"
 
-Vagrant.configure(VAGRANT_API_VERSION) do |config|
-  
-  # Global settings that apply to all VMs
-  config.vm.box_check_update = false  # Don't check for updates every time
-  config.vm.synced_folder ".", "/vagrant", disabled: false  # Share this directory
-  
-  #
-  # ELK Server
-  # This VM runs Elasticsearch, Logstash, and Kibana
-  #
-  config.vm.define "elk-server" do |elk|
-    elk.vm.box = VM_BOX_UBUNTU
-    elk.vm.hostname = "elk-server"
-    
-    # Networking: NAT (internet access) + Private network (VM-to-VM)
-    # NAT is automatic, we just need to add the private network
-    elk.vm.network "private_network", ip: ELK_SERVER_IP
-    
-    # Port forwarding: Access Kibana from your host browser
-    elk.vm.network "forwarded_port", guest: 5601, host: 5601, host_ip: "127.0.0.1"
-    elk.vm.network "forwarded_port", guest: 9200, host: 9200, host_ip: "127.0.0.1"
-    
-    # Resources - Elasticsearch is HUNGRY
-    # In real life, SIEM servers have 64GB+ RAM. For lab: 6GB minimum.
-    elk.vm.provider "virtualbox" do |vb|
-      vb.name = "elk-siem-server"
-      vb.memory = 6144  # 6GB RAM (Elasticsearch + Kibana + Logstash)
-      vb.cpus = 2
-      
-      # These DNS settings fix common networking issues
-      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-      vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-    end
-    
-    # Provisioning: Shell commands to run on first boot
-    # We install Python because Ansible needs it
-    elk.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get install -y python3 python3-pip
-      
-      # Add /etc/hosts entries so VMs can find each other by name
-      cat >> /etc/hosts << 'HOSTS'
-192.168.56.10   elk-server
-192.168.56.20   ubuntu-client
-192.168.56.50   kali-attacker
-HOSTS
-    SHELL
-  end
+deploy: config ## Deploy the entire lab (takes ~30-40 minutes)
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🚀 Deploying SOC Lab"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "This will:"
+	@echo " 1. Create 3 VMs (ELK server, Ubuntu client, Kali attacker)"
+	@echo " 2. Install and configure ELK stack"
+	@echo " 3. Setup log sources (Nginx, Suricata)"
+	@echo " 4. Deploy detection rules"
+	@echo ""
+	@echo "☕ Grab coffee - this takes ~30-40 minutes"
+	@echo ""
+	@cd vagrant && vagrant up
+	@echo ""
+	@echo "⏳ Waiting for VMs to fully boot (30 seconds)..."
+	@sleep 30
+	@echo ""
+	@echo "🧪 Testing connectivity..."
+	@cd ansible && ansible all -m ping
+	@echo ""
+	@echo "🔧 Deploying ELK stack with Ansible (this is the slow part)..."
+	@cd ansible && ansible-playbook -i inventory/hosts.yml playbooks/site.yml
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🎉 Deployment Complete!"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "Access your lab:"
+	@echo " 📊 Kibana: http://192.168.56.10:5601"
+	@echo " http://localhost:5601 (if port forwarded)"
+	@echo " 🔍 Elasticsearch: http://192.168.56.10:9200"
+	@echo ""
+	@echo "Credentials:"
+	@echo " 👤 Username: elastic"
+	@echo " 🔑 Password: ElkL@b2025"
+	@echo ""
+	@echo "Next steps:"
+	@echo " - make deploy-rules # Deploy detection rules"
+	@echo " - make attack # Run attack scenarios"
+	@echo " - make ssh-elk # SSH into ELK server"
+	@echo ""
 
-  #
-  # Ubuntu Client
-  # This VM generates logs (web server, SSH, system logs)
-  #
-  config.vm.define "ubuntu-client" do |client|
-    client.vm.box = VM_BOX_UBUNTU
-    client.vm.hostname = "ubuntu-client"
-    
-    # Private network for SIEM communication
-    client.vm.network "private_network", ip: UBUNTU_CLIENT_IP
-    
-    # Lighter resources - this is just generating logs
-    client.vm.provider "virtualbox" do |vb|
-      vb.name = "elk-siem-client"
-      vb.memory = 2048
-      vb.cpus = 1
-    end
-    
-    client.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get install -y python3 python3-pip
-      
-      # Add hosts
-      cat >> /etc/hosts << 'HOSTS'
-192.168.56.10   elk-server
-192.168.56.20   ubuntu-client
-192.168.56.50   kali-attacker
-HOSTS
-    SHELL
-  end
+status: ## Show VM status
+	@cd vagrant && vagrant status
 
-  #
-  # Kali Attacker
-  # This VM runs attack tools
-  #
-  config.vm.define "kali-attacker" do |kali|
-    kali.vm.box = VM_BOX_KALI
-    kali.vm.hostname = "kali-attacker"
-    
-    kali.vm.network "private_network", ip: KALI_ATTACKER_IP
-    
-    kali.vm.provider "virtualbox" do |vb|
-      vb.name = "elk-siem-attacker"
-      vb.memory = 2048
-      vb.cpus = 2
-      vb.gui = false
-    end
-    
-    kali.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get install -y python3 python3-pip
-      
-      # Install attack tools (most are pre-installed in Kali)
-      apt-get install -y hydra nmap sqlmap nikto
-      
-      # Add hosts
-      cat >> /etc/hosts << 'HOSTS'
-192.168.56.10   elk-server
-192.168.56.20   ubuntu-client
-192.168.56.50   kali-attacker
-HOSTS
-    SHELL
-  end
-end
+ssh-elk: ## SSH into ELK server
+	@cd vagrant && vagrant ssh elk-server
+
+ssh-client: ## SSH into Ubuntu client
+	@cd vagrant && vagrant ssh ubuntu-client
+
+ssh-kali: ## SSH into Kali attacker
+	@cd vagrant && vagrant ssh kali-attacker
+
+test-connectivity: ## Test Ansible connectivity to all VMs
+	@echo "🧪 Testing Ansible connectivity..."
+	@cd ansible && ansible all -m ping
+
+deploy-rules: ## Deploy detection rules to Kibana
+	@echo "📋 Deploying detection rules to Kibana..."
+	@cd detection-rules && python3 deploy_rules.py
+	@echo "✅ Detection rules deployed"
+
+attack: ## Run attack scenarios
+	@echo "💀 Launching attack scenarios..."
+	@cd attack-playbooks && python3 run_scenario.py --scenario all
+	@echo "✅ Attack scenarios complete"
+
+destroy: ## Destroy all VMs
+	@echo "💣 Destroying all VMs..."
+	@cd vagrant && vagrant destroy -f
+	@rm -f ansible/ssh_config
+	@echo "✅ All VMs destroyed"
+
+rebuild: destroy deploy ## Full rebuild (destroy + deploy)
+
+snapshot: ## Take snapshot of all VMs
+	@echo "📸 Taking snapshots of all VMs..."
+	@cd vagrant && vagrant snapshot save elk-server manual-$$(date +%Y%m%d-%H%M%S)
+	@cd vagrant && vagrant snapshot save ubuntu-client manual-$$(date +%Y%m%d-%H%M%S)
+	@cd vagrant && vagrant snapshot save kali-attacker manual-$$(date +%Y%m%d-%H%M%S)
+	@echo "✅ Snapshots saved"
+
+lint: ## Lint all code (Ansible, YAML, Python)
+	@echo "🔍 Linting Ansible playbooks..."
+	@ansible-lint ansible/playbooks/*.yml || true
+	@echo ""
+	@echo "🔍 Linting YAML files..."
+	@yamllint ansible/ detection-rules/ || true
+	@echo ""
+	@echo "🔍 Linting Python scripts..."
+	@cd scripts/python && pylint *.py || true
+
+clean: destroy ## Clean everything (VMs, caches, generated files)
+	@echo "🧹 Cleaning up..."
+	@cd vagrant && rm -rf .vagrant/
+	@rm -f ansible/ssh_config
+	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	@echo "✅ Cleaned"
