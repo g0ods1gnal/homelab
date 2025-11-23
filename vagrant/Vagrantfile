@@ -19,14 +19,6 @@ Vagrant.configure(VAGRANT_API_VERSION) do |config|
   config.vm.box_check_update = false
   config.vm.synced_folder ".", "/vagrant", disabled: false
   
-  # Configure hostmanager plugin
-  if Vagrant.has_plugin?("vagrant-hostmanager")
-    config.hostmanager.enabled = true
-    config.hostmanager.manage_host = false
-    config.hostmanager.manage_guest = true
-    config.hostmanager.ignore_private_ip = false
-  end
-
   #
   # ELK Server - The Brain
   #
