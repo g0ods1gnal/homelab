@@ -24,18 +24,18 @@ Perfect for learning, demonstrations, and building real SOC engineering skills.
 ### Infrastructure Overview
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                         Host Machine                              │
-│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐    │
-│  │  ELK Server    │  │ Ubuntu Client  │  │ Kali Attacker  │    │
-│  │  192.168.56.10 │  │ 192.168.56.20  │  │ 192.168.56.50  │    │
-│  │                │  │                │  │                │    │
-│  │ • Elasticsearch│  │ • Nginx        │  │ • Hydra        │    │
-│  │ • Logstash     │  │ • Suricata     │  │ • Nmap         │    │
-│  │ • Kibana       │  │ • Filebeat     │  │ • SQLMap       │    │
-│  │                │  │                │  │ • Nikto        │    │
-│  │ 6GB RAM        │  │ 2GB RAM        │  │ 2GB RAM        │    │
-│  │ 2 CPUs         │  │ 1 CPU          │  │ 2 CPUs         │    │
-│  └────────────────┘  └────────────────┘  └────────────────┘    │
+│                         Host Machine                             │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐      │
+│  │  ELK Server    │  │ Ubuntu Client  │  │ Kali Attacker  │      │
+│  │  192.168.56.10 │  │ 192.168.56.20  │  │ 192.168.56.50  │      │
+│  │                │  │                │  │                │      │
+│  │ • Elasticsearch│  │ • Nginx        │  │ • Hydra        │      │
+│  │ • Logstash     │  │ • Suricata     │  │ • Nmap         │      │
+│  │ • Kibana       │  │ • Filebeat     │  │ • SQLMap       │      │
+│  │                │  │                │  │ • Nikto        │      │
+│  │ 6GB RAM        │  │ 2GB RAM        │  │ 2GB RAM        │      │
+│  │ 2 CPUs         │  │ 1 CPU          │  │ 2 CPUs         │      │
+│  └────────────────┘  └────────────────┘  └────────────────┘      │
 │         │                    │                    │              │
 │         └────────────────────┴────────────────────┘              │
 │              Private Network: 192.168.56.0/24                    │
@@ -348,7 +348,7 @@ Security simplifications made for learning:
 **Built for learning. Ready for production concepts.**
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  "If you can't rebuild it from scratch in 30 minutes,      │
+│  "If you can't rebuild it from scratch in 30 minutes,       │
 │   you don't really understand it."                          │
 └─────────────────────────────────────────────────────────────┘
 ```
